@@ -1,0 +1,10 @@
+{
+    "functions": {
+        "api/checkForUpdates.ts": {
+            "runtime": "nodejs16.x"
+        }
+    },
+    "cron": {
+        "api/checkForUpdates.ts": "0 */1 * * *"
+    }
+}
