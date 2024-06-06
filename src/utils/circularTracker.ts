@@ -41,6 +41,31 @@ const arraysAreEqual = (arr1: CircularInterface[], arr2: CircularInterface[], ke
     return arr1.map(getKey).join() === arr2.map(getKey).join();
 };
 
+const fetchAndSendTop10Companies = async (): Promise<void> => {
+    try {
+        const response = await fetch(websiteUrl);
+        const html = await response.text();
+        const $ = cheerio.load(html);
+        const data: CircularInterface[] = [];
+        const dateRegex = /(\d{2})\.(\d{2})\.(\d{4})/;
+        $('div[dir="ltr"] ul a').each((index, element) => {
+            const circular = $(element).text();
+            const link = $(element).attr('href');
+            const date = circular.match(dateRegex)?.[0] || "No date found";
+            data.push({
+                companyName: circular,
+                link: link || "No link found",
+                date: date
+            });
+        });
+        const top10Companies = data.slice(0, 10);
+        await sendEmailNotification(top10Companies);
+        console.log('Top 10 companies email sent');
+    } catch (error) {
+        console.error('Error:', error);
+    }
+};
+
 const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
     const existingData = await readExistingDataFromMongoDB();
     try {
@@ -63,7 +88,7 @@ const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
             await Circular.deleteMany({});
             await Circular.insertMany(data);
             console.log('MongoDB collection updated');
-            await sendEmailNotification(data);
+            await sendEmailNotification(data.slice(0, 10)); // Send email with top 10 companies
         } else {
             console.log('No update found.');
         }
@@ -76,7 +101,7 @@ const sendEmailNotification = async (data: CircularInterface[]): Promise<void> =
     const htmlContent = `
         <html>
         <body>
-            <h2 style="color: #4CAF50;">New Company Circulars Added</h2>
+            <h2 style="color: #4CAF50;">Top 10 New Company Circulars</h2>
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr>
@@ -103,7 +128,7 @@ const sendEmailNotification = async (data: CircularInterface[]): Promise<void> =
         await resend.emails.send({
             from: emailSender,
             to: emailRecipient,
-            subject: 'New Company came for Placement',
+            subject: 'Top 10 New Company Circulars',
             html: htmlContent,
         });
         console.log('Email sent successfully');
@@ -113,5 +138,13 @@ const sendEmailNotification = async (data: CircularInterface[]): Promise<void> =
 };
 
 export const circularTracker = async (): Promise<void> => {
-    await fetchDataAndSaveToMongoDBIfNeeded();
+    // Check if MongoDB has data
+    const existingData = await readExistingDataFromMongoDB();
+    if (existingData.length === 0) {
+        // If MongoDB has no data, fetch and send top 10 companies
+        await fetchAndSendTop10Companies();
+    } else {
+        // If MongoDB has data, continue with regular functionality
+        await fetchDataAndSaveToMongoDBIfNeeded();
+    }
 };
