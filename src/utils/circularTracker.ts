@@ -120,7 +120,7 @@ const sendEmailNotification = async (dataFrom: CircularInterface[]): Promise<voi
     }
 };
 
-const sendNoNewCircularsEmail = async (): Promise<void> => {
+export const sendNoNewCircularsEmail = async (): Promise<void> => {
     const {
         data,
         error
