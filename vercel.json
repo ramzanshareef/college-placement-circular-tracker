@@ -4,7 +4,10 @@
             "runtime": "nodejs16.x"
         }
     },
-    "cron": {
-        "api/checkForUpdates.ts": "0 */1 * * *"
-    }
+    "crons:": [
+        {
+            "path": "/api/checkForUpdates.ts",
+            "schedule": "0 * * * *"
+        }
+    ]
 }
