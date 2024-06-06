@@ -1,74 +1,78 @@
-import fs from "fs";
-import cheerio from "cheerio";
-import { readFile, writeFile, utils } from "xlsx";
-import { Resend } from "resend";
-import { NextApiRequest, NextApiResponse } from "next";
-import path from "path";
+import mongoose from 'mongoose';
+import cheerio from 'cheerio';
+import { Resend } from 'resend';
 
 const websiteUrl = process.env.WEBSITE_URL as string;
-const excelFilePath = path.resolve(process.cwd(), process.env.EXCEL_FILE_PATH as string);;
 const resendApiKey = process.env.RESEND_API_KEY as string;
 const emailSender = process.env.EMAIL_SENDER as string;
 const emailRecipient = process.env.EMAIL_RECIPIENT as string;
+const mongodbUri = process.env.MONGODB_URI as string;
 
 const resend = new Resend(resendApiKey);
 
-interface Circular {
-    "Company Name": string;
-    "Link": string;
-    "Date": string;
+// MongoDB schema and model
+const circularSchema = new mongoose.Schema({
+    companyName: String,
+    link: String,
+    date: String,
+}, { collection: 'circulars' });
+
+const Circular = mongoose.models.Circular || mongoose.model('Circular', circularSchema);
+
+interface CircularInterface {
+    companyName: string;
+    link: string;
+    date: string;
 }
 
-const readExistingDataFromExcel = (): Circular[] => {
+mongoose.connect(mongodbUri);
+
+const readExistingDataFromMongoDB = async (): Promise<CircularInterface[]> => {
     try {
-        const workbook = readFile(excelFilePath);
-        const worksheet = workbook.Sheets["Circulars"];
-        return utils.sheet_to_json(worksheet);
+        return await Circular.find({});
     } catch (error) {
-        console.error("Error reading existing data:", error);
+        console.error('Error reading existing data:', error);
         return [];
     }
 };
 
-const arraysAreEqual = (arr1: Circular[], arr2: Circular[], key: keyof Circular): boolean => {
-    const getKey = (obj: Circular) => obj[key];
+const arraysAreEqual = (arr1: CircularInterface[], arr2: CircularInterface[], key: keyof CircularInterface): boolean => {
+    const getKey = (obj: CircularInterface) => obj[key];
     return arr1.map(getKey).join() === arr2.map(getKey).join();
 };
 
-const fetchDataAndSaveToExcelIfNeeded = async (): Promise<void> => {
-    const existingData = readExistingDataFromExcel();
+const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
+    const existingData = await readExistingDataFromMongoDB();
     try {
         const response = await fetch(websiteUrl);
         const html = await response.text();
         const $ = cheerio.load(html);
-        const data: Circular[] = [];
+        const data: CircularInterface[] = [];
         const dateRegex = /(\d{2})\.(\d{2})\.(\d{4})/;
-        $("div[dir=\"ltr\"] ul a").each((index, element) => {
+        $('div[dir="ltr"] ul a').each((index, element) => {
             const circular = $(element).text();
-            const link = $(element).attr("href");
+            const link = $(element).attr('href');
             const date = circular.match(dateRegex)?.[0] || "No date found";
             data.push({
-                "Company Name": circular,
-                "Link": link || "No link found",
-                "Date": date
+                companyName: circular,
+                link: link || "No link found",
+                date: date
             });
         });
-        if (!arraysAreEqual(existingData, data, "Company Name")) {
-            const workbook = utils.book_new();
-            const worksheet = utils.json_to_sheet(data);
-            utils.book_append_sheet(workbook, worksheet, "Circulars");
-            writeFile(workbook, excelFilePath);
-            console.log("Excel file updated:", excelFilePath);
+        if (!arraysAreEqual(existingData, data, 'companyName')) {
+            await Circular.deleteMany({});
+            await Circular.insertMany(data);
+            console.log('MongoDB collection updated');
             await sendEmailNotification(data);
         } else {
-            console.log("No update found.");
+            console.log('No update found.');
         }
     } catch (error) {
-        console.error("Error:", error);
+        console.error('Error:', error);
     }
 };
 
-const sendEmailNotification = async (data: Circular[]): Promise<void> => {
+const sendEmailNotification = async (data: CircularInterface[]): Promise<void> => {
     const htmlContent = `
         <html>
         <body>
@@ -84,11 +88,11 @@ const sendEmailNotification = async (data: Circular[]): Promise<void> => {
                 <tbody>
                     ${data.map(item => `
                         <tr>
-                            <td style="border: 1px solid #ddd; padding: 8px;">${item["Company Name"]}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px;"><a href="${item.Link}">${item.Link}</a></td>
-                            <td style="border: 1px solid #ddd; padding: 8px;">${item.Date}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${item.companyName}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;"><a href="${item.link}">${item.link}</a></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${item.date}</td>
                         </tr>
-                    `).join("")}
+                    `).join('')}
                 </tbody>
             </table>
         </body>
@@ -97,40 +101,17 @@ const sendEmailNotification = async (data: Circular[]): Promise<void> => {
 
     try {
         await resend.emails.send({
-            from: emailSender as string,
-            to: emailRecipient as string,
-            subject: "New Company came for Placement",
+            from: emailSender,
+            to: emailRecipient,
+            subject: 'New Company came for Placement',
             html: htmlContent,
-            attachments: [
-                {
-                    filename: "PlacementCirculars.xlsx",
-                    path: excelFilePath
-                }
-            ]
         });
-        console.log("Email sent successfully");
+        console.log('Email sent successfully');
     } catch (error) {
-        console.error("Error sending email:", error);
+        console.error('Error sending email:', error);
     }
 };
 
-const createExcelFileIfNeeded = (): void => {
-    if (!fs.existsSync(excelFilePath)) {
-        const workbook = utils.book_new();
-        const worksheet = utils.json_to_sheet([]);
-        utils.book_append_sheet(workbook, worksheet, "Circulars");
-        writeFile(workbook, excelFilePath);
-        console.log("Excel file created:", excelFilePath);
-    }
+export const circularTracker = async (): Promise<void> => {
+    await fetchDataAndSaveToMongoDBIfNeeded();
 };
-
-const circularTracker = async () => {
-    createExcelFileIfNeeded();
-    await fetchDataAndSaveToExcelIfNeeded();
-    return {
-        status: 200,
-        message: "Success"
-    }
-};
-
-export default circularTracker;

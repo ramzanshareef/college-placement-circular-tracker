@@ -12,6 +12,8 @@
     "@types/cheerio": "^0.22.35",
     "cheerio": "^1.0.0-rc.12",
     "fs": "^0.0.1-security",
+    "mongodb": "^6.7.0",
+    "mongoose": "^8.4.1",
     "next": "14.2.3",
     "nodemailer": "^6.9.13",
     "react": "^18",
