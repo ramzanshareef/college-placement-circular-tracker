@@ -1,9 +1,4 @@
 {
-    "functions": {
-        "api/checkForUpdates.ts": {
-            "runtime": "nodejs16.x"
-        }
-    },
     "crons:": [
         {
             "path": "/api/checkForUpdates.ts",
