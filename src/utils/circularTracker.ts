@@ -1,11 +1,12 @@
 import fs from "fs";
 import cheerio from "cheerio";
-import XLSX from "xlsx";
+import { readFile, writeFile, utils } from "xlsx";
 import { Resend } from "resend";
 import { NextApiRequest, NextApiResponse } from "next";
+import path from "path";
 
 const websiteUrl = process.env.WEBSITE_URL as string;
-const excelFilePath = process.env.EXCEL_FILE_PATH as string;
+const excelFilePath = path.resolve(process.cwd(), process.env.EXCEL_FILE_PATH as string);;
 const resendApiKey = process.env.RESEND_API_KEY as string;
 const emailSender = process.env.EMAIL_SENDER as string;
 const emailRecipient = process.env.EMAIL_RECIPIENT as string;
@@ -20,9 +21,9 @@ interface Circular {
 
 const readExistingDataFromExcel = (): Circular[] => {
     try {
-        const workbook = XLSX.readFile(excelFilePath);
+        const workbook = readFile(excelFilePath);
         const worksheet = workbook.Sheets["Circulars"];
-        return XLSX.utils.sheet_to_json(worksheet);
+        return utils.sheet_to_json(worksheet);
     } catch (error) {
         console.error("Error reading existing data:", error);
         return [];
@@ -53,10 +54,10 @@ const fetchDataAndSaveToExcelIfNeeded = async (): Promise<void> => {
             });
         });
         if (!arraysAreEqual(existingData, data, "Company Name")) {
-            const workbook = XLSX.utils.book_new();
-            const worksheet = XLSX.utils.json_to_sheet(data);
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Circulars");
-            XLSX.writeFile(workbook, excelFilePath);
+            const workbook = utils.book_new();
+            const worksheet = utils.json_to_sheet(data);
+            utils.book_append_sheet(workbook, worksheet, "Circulars");
+            writeFile(workbook, excelFilePath);
             console.log("Excel file updated:", excelFilePath);
             await sendEmailNotification(data);
         } else {
@@ -115,10 +116,10 @@ const sendEmailNotification = async (data: Circular[]): Promise<void> => {
 
 const createExcelFileIfNeeded = (): void => {
     if (!fs.existsSync(excelFilePath)) {
-        const workbook = XLSX.utils.book_new();
-        const worksheet = XLSX.utils.json_to_sheet([]);
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Circulars");
-        XLSX.writeFile(workbook, excelFilePath);
+        const workbook = utils.book_new();
+        const worksheet = utils.json_to_sheet([]);
+        utils.book_append_sheet(workbook, worksheet, "Circulars");
+        writeFile(workbook, excelFilePath);
         console.log("Excel file created:", excelFilePath);
     }
 };
