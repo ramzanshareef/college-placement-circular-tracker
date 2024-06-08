@@ -124,6 +124,16 @@ const sendEmailNotification = async (dataFrom: CircularInterface[]): Promise<voi
 };
 
 export const sendNoNewCircularsEmail = async (): Promise<void> => {
+    const sendNoNewCircularsEmailContent = `
+<html>
+    <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 20px;">
+        <h2 style="color: #4CAF50; text-align: center; font-size: 2em; margin-bottom: 20px;">
+        Congrats! You're up to date with the latest placement circulars! 🎉
+        </h2
+>
+    </body>
+</html>
+    `;
     const {
         data,
         error
@@ -131,7 +141,7 @@ export const sendNoNewCircularsEmail = async (): Promise<void> => {
         from: "My Placements Circular Tracker <" + emailSender + ">",
         to: emailRecipient,
         subject: "No new circulars found",
-        text: "No new circulars found",
+        html: sendNoNewCircularsEmailContent,
     });
     if (error) {
         console.error('Error sending email:', error);
