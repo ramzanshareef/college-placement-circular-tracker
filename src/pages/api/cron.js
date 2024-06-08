@@ -1,8 +1,11 @@
-export default function handler(req, res) {
+import { circularTracker } from "../../utils/circularTracker";
+
+export default async function handler(req, res) {
     // if (req.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     //     return res.status(401).end('Unauthorized');
     // }
     console.log("Hello World, I am from Cron");
+    await circularTracker();
     res.status(200).end('Hello Cron!');
 }
 
