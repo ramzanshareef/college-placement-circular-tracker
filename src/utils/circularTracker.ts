@@ -66,12 +66,12 @@ const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
 
         // Save new circulars to the database
         if (newCirculars.length > 0) {
-            let resCirculars = newCirculars.length > 50 ? newCirculars.slice(0, 50) : newCirculars;
-            await Circular.insertMany(resCirculars);
+            await Circular.insertMany(newCirculars);
+            let resCirculars = newCirculars.length > 20 ? newCirculars.slice(0, 20) : newCirculars;
             await sendEmailNotification(resCirculars);
         }
         else {
-            await sendNoNewCircularsEmail();    
+            await sendNoNewCircularsEmail();
         }
     } catch (error) {
         console.error('Error:', error);
@@ -81,29 +81,32 @@ const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
 
 const sendEmailNotification = async (dataFrom: CircularInterface[]): Promise<void> => {
     const htmlContent = `
-        <html>
-        <body>
-            <h2 style="color: #4CAF50;">Check out the latest placement circulars!🎉</h2>
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr>
-                        <th style="border: 1px solid #ddd; padding: 8px;">Company Name</th>
-                        <th style="border: 1px solid #ddd; padding: 8px;">Link</th>
-                        <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+<html>
+    <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 20px;">
+        <h2 style="color: #4CAF50; text-align: center; font-size: 2em; margin-bottom: 20px;">Check out the latest placement circulars! 🎉</h2>
+        <table style="width: 100%; border-collapse: collapse; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); background-color: #fff;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 1em; background-color: #4CAF50; color: white; font-weight: bold;">Company Name</th>
+                    <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 1em; background-color: #4CAF50; color: white; font-weight: bold;">Link</th>
+                    <th style="border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 1em; background-color: #4CAF50; color: white; font-weight: bold;">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${dataFrom.map(item => `
+                    <tr style="background-color: ${dataFrom.indexOf(item) % 2 === 0 ? '#f2f2f2' : '#fff'};">
+                        <td style="border: 1px solid #ddd; padding: 12px;">${item.companyName}</td>
+                        <td style="border: 1px solid #ddd; padding: 12px;"><a href="${item.link}" style="color: #4CAF50; text-decoration: none; font-weight: bold;">
+                            View circular
+                        </a></td>
+                        <td style="border: 1px solid #ddd; padding: 12px;">${item.date}</td>
                     </tr>
-                </thead>
-                <tbody>
-                    ${dataFrom.map(item => `
-                        <tr>
-                            <td style="border: 1px solid #ddd; padding: 8px;">${item.companyName}</td>
-                            <td style="border: 1px solid #ddd; padding: 8px;"><a href="${item.link}">${item.link}</a></td>
-                            <td style="border: 1px solid #ddd; padding: 8px;">${item.date}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </body>
-        </html>
+                `).join('')}
+            </tbody>
+        </table>
+    </body>
+</html>
+
     `;
 
     const { data, error } = await resend.emails.send({
