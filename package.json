@@ -11,15 +11,11 @@
   "dependencies": {
     "@types/cheerio": "^0.22.35",
     "cheerio": "^1.0.0-rc.12",
-    "fs": "^0.0.1-security",
-    "mongodb": "^6.7.0",
     "mongoose": "^8.4.1",
     "next": "14.2.3",
-    "nodemailer": "^6.9.13",
     "react": "^18",
     "react-dom": "^18",
-    "resend": "^3.2.0",
-    "xlsx": "^0.18.5"
+    "resend": "^3.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
