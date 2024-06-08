@@ -21,6 +21,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/utils/circularTracker.ts", "src/app/api/checkForUpdates/route.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/utils/circularTracker.ts", "src/pages/api/cron/route.ts"],
   "exclude": ["node_modules"]
 }
