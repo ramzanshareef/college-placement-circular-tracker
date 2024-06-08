@@ -71,7 +71,7 @@ const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
             await sendEmailNotification(resCirculars);
         }
         else {
-            await sendNoNewCircularsEmail();
+            console.log("No new circulars found.");
         }
     } catch (error) {
         console.error('Error:', error);
@@ -122,34 +122,6 @@ const sendEmailNotification = async (dataFrom: CircularInterface[]): Promise<voi
         console.log('Email sent:', data);
     }
 };
-
-export const sendNoNewCircularsEmail = async (): Promise<void> => {
-    const sendNoNewCircularsEmailContent = `
-<html>
-    <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 20px;">
-        <h2 style="color: #4CAF50; text-align: center; font-size: 2em; margin-bottom: 20px;">
-        Congrats! You're up to date with the latest placement circulars! 🎉
-        </h2
->
-    </body>
-</html>
-    `;
-    const {
-        data,
-        error
-    } = await resend.emails.send({
-        from: "My Placements Circular Tracker <" + emailSender + ">",
-        to: emailRecipient,
-        subject: "No new circulars found",
-        html: sendNoNewCircularsEmailContent,
-    });
-    if (error) {
-        console.error('Error sending email:', error);
-    }
-    else {
-        console.log('Email sent:', data);
-    }
-}
 
 export const circularTracker = async (): Promise<void> => {
     await fetchDataAndSaveToMongoDBIfNeeded();
