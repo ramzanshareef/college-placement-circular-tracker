@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 import cheerio from 'cheerio';
 import { Resend } from 'resend';
+import connectDB from './db';
 
 const websiteUrl = process.env.WEBSITE_URL as string;
 const resendApiKey = process.env.RESEND_API_KEY as string;
 const emailSender = process.env.EMAIL_SENDER as string;
 const emailRecipient = process.env.EMAIL_RECIPIENT as string;
-const mongodbUri = process.env.MONGODB_URI as string;
 
 const resend = new Resend(resendApiKey);
 
@@ -25,10 +25,9 @@ interface CircularInterface {
     date: string;
 }
 
-mongoose.connect(mongodbUri);
-
 const readExistingDataFromMongoDB = async (): Promise<CircularInterface[]> => {
     try {
+        await connectDB();
         return await Circular.find({});
     } catch (error) {
         console.error('Error reading existing data:', error);
@@ -38,10 +37,11 @@ const readExistingDataFromMongoDB = async (): Promise<CircularInterface[]> => {
 
 const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
     try {
+        await connectDB();
         const response = await fetch(websiteUrl);
         const html = await response.text();
         const $ = cheerio.load(html);
-        const data: CircularInterface[] = [];
+        let data: CircularInterface[] = [];
         const dateRegex = /(\d{2})\.(\d{2})\.(\d{4})/;
         $('div[dir="ltr"] ul a').each((index, element) => {
             const circular = $(element).text();
@@ -57,6 +57,9 @@ const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
         // Fetch existing data from MongoDB
         const existingData = await readExistingDataFromMongoDB();
 
+        // filter the top 20 circulars
+        data = data.slice(0, 20);
+
         // Filter out circulars that are already in the database
         const newCirculars = data.filter(newCircular => {
             return !existingData.some(existingCircular => {
@@ -66,8 +69,8 @@ const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
 
         // Save new circulars to the database
         if (newCirculars.length > 0) {
-            await Circular.insertMany(newCirculars.slice(0, 20));
-            await sendEmailNotification(newCirculars.slice(0, 20));
+            await Circular.insertMany(newCirculars);
+            await sendEmailNotification(newCirculars);
         }
         else {
             console.log("No new circulars found.");
@@ -107,11 +110,18 @@ const sendEmailNotification = async (dataFrom: CircularInterface[]): Promise<voi
 </html>
 
     `;
+    let subject;
+    if (dataFrom.length === 1) {
+        subject = dataFrom[0].companyName.match(/^(.*?)\sPlacement\sCircular/)?.[0];
+    }
+    else {
+        subject = dataFrom[0].companyName.match(/^(.*?)\sPlacement\sCircular/)?.[1] + ", " + dataFrom[1].companyName.match(/^(.*?)\sPlacement\sCircular/)?.[1];
+    }
 
     const { data, error } = await resend.emails.send({
         from: "My Placements Circular Tracker <" + emailSender + ">",
         to: emailRecipient,
-        subject: dataFrom[0].companyName.match(/^(.*?)\sPlacement\sCircular/)?.[1] + ", " + dataFrom[1].companyName.match(/^(.*?)\sPlacement\sCircular/)?.[1] + " and more...",
+        subject: subject + " and more...",
         html: htmlContent,
     });
 
