@@ -66,7 +66,7 @@ const fetchDataAndSaveToMongoDBIfNeeded = async (): Promise<void> => {
 
         // Save new circulars to the database
         if (newCirculars.length > 0) {
-            await Circular.insertMany(newCirculars);
+            await Circular.insertMany(newCirculars.slice(0, 20));
             await sendEmailNotification(newCirculars.slice(0, 20));
         }
         else {
