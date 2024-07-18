@@ -1,21 +1,21 @@
-# College Placement Circular Tracker
+# 📢 College Placement Circular Tracker
 
 Automated web service for tracking company placement circulars for a college, utilizing NextJS, Cheerio, and Resend to ensure real-time updates and email notifications.
 
-## Features
+## 🚀 Features
 
 - **Automated Circular Retrieval**: Fetches circular links from the college website using Cheerio.
 - **Real-time Updates**: Updates MongoDB with new circulars and sends email notifications using Resend.
 - **Email Notifications**: Sends structured email notifications with circular details to specified recipients.
 
-## Technologies Used
+## 🛠️ Technologies Used
 
 - **NextJS**: React framework for server-side rendering and routing.
 - **Cheerio**: Fast, flexible, and lean implementation of jQuery core for parsing HTML.
 - **Resend**: API for sending transactional emails.
 - **MongoDB**: NoSQL database for storing circular data.
 
-## Installation
+## ⬇️ Installation
 
 1. **Clone the Repository**
 
@@ -37,7 +37,7 @@ MONGODB_URI
 CRON_SECRET
 ```
 
-## Usage
+## 📝 Usage
 
 The "College Placement Circular Tracker" is designed to automate the tracking of company placement circulars for a college. It can be used in the following ways:
 
@@ -45,7 +45,7 @@ The "College Placement Circular Tracker" is designed to automate the tracking of
 - **Students**: Stay updated with the latest placement opportunities directly through email notifications.
 - **Administrators**: Monitor the circular tracking process and ensure smooth operation of the automated system.
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps to contribute:
 
@@ -55,7 +55,7 @@ Contributions are welcome! Please follow these steps to contribute:
 4. Push to the branch (git push origin feature/YourFeature)
 5. Open a pull request
 
-## Contact
+## 👉 Contact
 
 For any inquiries or feedback, please reach out to:
 - **Name**: Mohd Ramzan Shareef
