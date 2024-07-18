@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# College Placement Circular Tracker
 
-## Getting Started
+Automated web service for tracking company placement circulars for a college, utilizing NextJS, Cheerio, and Resend to ensure real-time updates and email notifications.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Automated Circular Retrieval**: Fetches circular links from the college website using Cheerio.
+- **Real-time Updates**: Updates MongoDB with new circulars and sends email notifications using Resend.
+- **Email Notifications**: Sends structured email notifications with circular details to specified recipients.
+
+## Technologies Used
+
+- **NextJS**: React framework for server-side rendering and routing.
+- **Cheerio**: Fast, flexible, and lean implementation of jQuery core for parsing HTML.
+- **Resend**: API for sending transactional emails.
+- **MongoDB**: NoSQL database for storing circular data.
+
+## Installation
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/ramzanshareef/college-placement-circular-tracker.git
+   cd college-placement-circular-tracker
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   - Create a .env file in the root directory based on following
+```env
+WEBSITE_URL
+RESEND_API_KEY
+EMAIL_SENDER
+EMAIL_RECIPIENT
+MONGODB_URI
+CRON_SECRET
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Usage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The "College Placement Circular Tracker" is designed to automate the tracking of company placement circulars for a college. It can be used in the following ways:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- **College Placement Offices**: Use this tool to monitor and manage incoming placement circulars from various companies efficiently.
+- **Students**: Stay updated with the latest placement opportunities directly through email notifications.
+- **Administrators**: Monitor the circular tracking process and ensure smooth operation of the automated system.
 
-## Learn More
+## Contributing
 
-To learn more about Next.js, take a look at the following resources:
+Contributions are welcome! Please follow these steps to contribute:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Fork the repository
+2. Create a new branch (git checkout -b feature/YourFeature)
+3. Commit your changes (git commit -m 'Add some feature')
+4. Push to the branch (git push origin feature/YourFeature)
+5. Open a pull request
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Contact
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+For any inquiries or feedback, please reach out to:
+- **Name**: Mohd Ramzan Shareef
+- **Email**: mail.ramzanshareef@gmail.com
+- **GitHub**: [ramzanshareef](https://github.com/ramzanshareef)
